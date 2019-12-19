@@ -30,7 +30,25 @@
       else json_error (s ^ " is too large for OCaml's type int, sorry")
 
   let utf8_of_point i =
-    Netconversion.ustring_of_uchar `Enc_utf8 i
+    let implode l =
+      let b = Buffer.create (List.length l) in
+        List.iter (Buffer.add_char b) l;
+        Buffer.contents b
+    in
+    if i <= 0x007F then
+      implode [char_of_int i]
+    else if i <= 0x07FF then
+      implode [char_of_int (((i lsr  6) land 0x1F) lor 0xC0);
+               char_of_int ((i land 0x3F) lor 0x80)]
+    else if i <= 0x0000FFFF then
+      implode [char_of_int (((i lsr 12) land 0x0F) lor 0xE0);
+               char_of_int (((i lsr  6) land 0x3F) lor 0x80);
+               char_of_int ((i land 0x3F) lor 0x80)]
+    else
+      implode [char_of_int (((i lsr 18) land 0x07) lor 0xF0);
+               char_of_int (((i lsr 12) land 0x3F) lor 0x80);
+               char_of_int (((i lsr  6) land 0x3F) lor 0x80);
+               char_of_int ((i land 0x3F) lor 0x80)]
 
   let custom_error descr lexbuf =
     json_error 
@@ -134,6 +152,16 @@ and escaped_char = parse
 					 0x10 * hexval x.[2] + 
 					 hexval x.[3] in
 				 utf8_of_point i }
+  | 'U' (hex hex hex hex hex hex hex hex as x)
+         { let i = 0x10000000 * hexval x.[0] +
+                    0x1000000 * hexval x.[1] +
+                     0x100000 * hexval x.[2] +
+                      0x10000 * hexval x.[3] +
+                       0x1000 * hexval x.[4] +
+                        0x100 * hexval x.[5] +
+		         0x10 * hexval x.[6] + 
+		                hexval x.[7] in
+	   utf8_of_point i }
   | _  { lexer_error "Invalid escape sequence" lexbuf }
 
 and comment = parse

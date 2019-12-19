@@ -38,13 +38,13 @@ let create_samples () =
     Json_io.json_of_string 
       "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[ \"Hi!\"
        ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]" in
-  let s = Bytes.make 1_000_000 'x' in
+  let s = String.make 1_000_000 'x' in
   for i = 0 to 127 do
-    Bytes.set s i (char_of_int i)
+    s.[i] <- char_of_int i
   done;
-  let x =
+  let x = 
     objekt [ "array", array (Array.to_list (Array.init 100_000 int));
-	     "string", string (Bytes.unsafe_to_string s);
+	     "string", string s;
 	     "int", int max_int;
 	     "float", float 1e255;
 	     "deep_array", array (Array.to_list (Array.make 1000 deep)) ] in

@@ -11,7 +11,7 @@ SOURCES = \
   json_io.mli json_io.ml \
   json_compat.ml
 
-PACKS = netstring
+PACKS =
 
 STDBIN = $(shell dirname `which ocamlfind`)
 ifndef PREFIX
@@ -30,10 +30,10 @@ OPTRESULT = $(RESULT).cmxa $(RESULT).a json_*.cmx json_*.o
 
 .PHONY: default all opt install uninstall html archive test
 
-default: bcl ncl jsoncat
+default: bcl ncl
 
 all: bcl
-opt: ncl jsoncat
+opt: ncl
 
 
 install:
@@ -42,26 +42,14 @@ install:
 		json_type.mli json_io.mli json_compat.ml \
 		`test -f $(RESULT).cma && echo $(BYTERESULT)` \
 		`test -f $(RESULT).cmxa && echo $(OPTRESULT)`
-	if test -f jsoncat$(EXE); \
-		then install -m 0755 jsoncat$(EXE) $(BINDIR)/ ; \
-		else : ; fi
 uninstall:
 	ocamlfind remove $(NAME)
-	rm -f $(BINDIR)/jsoncat$(EXE)
 
 version.ml: Makefile
 	echo 'let version = "$(VERSION)"' > version.ml
-jsoncat: version.ml jsoncat.ml
-	$(MAKE) ncl
-	ocamlfind ocamlopt -o jsoncat -package $(PACKS) -linkpkg \
-		$(RESULT).cmxa version.ml jsoncat.ml
 
-test: jsoncat
-	./jsoncat -test
-	cmp sample-compact.json sample-compact2.json
-	cmp sample-indented.json sample-indented2.json
-	rm sample-compact.json sample-compact2.json \
-		sample-indented.json sample-indented2.json
+test:
+
 check:
 	@echo "-------------------- Standard mode --------------------"
 	./check.sh
@@ -101,7 +89,7 @@ archive: META html
 	cp html/* $$WWW/$(NAME)-doc
 
 
-TRASH = jsoncat jsoncat.o jsoncat.cm* version.* \
+TRASH = version.* \
   sample-compact.json sample-compact2.json \
   sample-indented.json sample-indented2.json
 
